@@ -1,0 +1,6 @@
+data/wiki_prices.csv
+data/assets.h5
+dma.pickle
+.idea
+.ipynb_checkpoints
+02_market_and_fundamental_data/03_data_providers/*.csv

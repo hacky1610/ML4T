@@ -1,0 +1,1 @@
+docker run -it --rm -p 8888:8888 -v "${PWD}":/home/jovyan/work -e "QUANDL_API_KEY=jmryj1CJU87YkvMsuEXY" jupyter/base-notebook:my_version
