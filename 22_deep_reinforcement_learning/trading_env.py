@@ -239,8 +239,8 @@ class TradingEnvironment(gym.Env):
                                           trading_cost_bps=self.trading_cost_bps,
                                           time_cost_bps=self.time_cost_bps)
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(self.data_source.min_values,
-                                            self.data_source.max_values)
+        self.observation_space = spaces.Box(self.data_source.min_values.to_numpy(),
+                                            self.data_source.max_values.to_numpy())
         self.reset()
 
     def seed(self, seed=None):
