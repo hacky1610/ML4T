@@ -294,7 +294,6 @@ dependencies:
   - murmurhash=1.0.5
   - mypy_extensions=0.4.3
   - mysql-common=8.0.25
-  - mysql-libs=8.0.25
   - nb_conda=2.2.1
   - nb_conda_kernels=2.3.1
   - nbclassic=0.3.1
@@ -390,7 +389,6 @@ dependencies:
   - python-interface=1.6.0
   - python_abi=3.8
   - pythreejs=2.3.0
-  - pytorch=1.9.0
   - pytz=2021.1
   - pyu2f=0.1.5
   - pywavelets=1.1.1
