@@ -239,7 +239,6 @@ for episode in range(1, max_episodes + 1):
     this_state = trading_environment.reset()
     for episode_step in range(max_episode_steps):
         action = ddqn.epsilon_greedy_policy(this_state.reshape(-1, state_dim))
-        print(trading_environment.step(action))
         next_state, reward, done, _ = trading_environment.step(action)
 
         ddqn.memorize_transition(this_state,
@@ -282,7 +281,6 @@ for episode in range(1, max_episodes + 1):
                       np.sum([s > 0 for s in diffs[-100:]]) / min(len(diffs), 100),
                       time() - start, ddqn.epsilon)
     if len(diffs) > 25 and all([r > 0 for r in diffs[-25:]]):
-        print(f"Episode: {episode} of {max_episodes}")
         print(result.tail())
         break
 

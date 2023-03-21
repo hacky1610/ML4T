@@ -113,8 +113,17 @@ class DataSource:
 
     def load_data(self):
         log.info('loading data for {}...'.format(self.ticker))
-        idx = pd.IndexSlice
-        df = Tiingo().load_data_by_date("GBPUSD","2022-10-01","2023-02-28")
+        if self.ticker == "AAPL":
+            idx = pd.IndexSlice
+            with pd.HDFStore('../data/assets.h5') as store:
+                df = (store['quandl/wiki/prices']
+                      .loc[idx[:, self.ticker],
+                ['adj_close', 'adj_volume', 'adj_low', 'adj_high']]
+                      .dropna()
+                      .sort_index())
+            df.columns = ['close', 'volume', 'low', 'high']
+        elif self.ticker == "GBPUSD":
+            df = Tiingo().load_data_by_date(self.ticker,"2022-10-01","2023-02-28")
         log.info('got data for {}...'.format(self.ticker))
         return df
 
@@ -134,7 +143,12 @@ class DataSource:
         self.data['stoch'] = slowd - slowk
         self.data['atr'] = talib.ATR(self.data.high, self.data.low, self.data.close)
         self.data['ultosc'] = talib.ULTOSC(self.data.high, self.data.low, self.data.close)
-        self.data = (self.data.replace((np.inf, -np.inf), np.nan)
+        if self.ticker == "AAPL":
+            self.data = (self.data.replace((np.inf, -np.inf), np.nan)
+                         .drop(['high', 'low', 'close', 'volume'], axis=1)
+                         .dropna())
+        elif self.ticker == "GBPUSD":
+            self.data = (self.data.replace((np.inf, -np.inf), np.nan)
                      .drop(['high', 'low', 'close','date'], axis=1)
                      .dropna())
 
