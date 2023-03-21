@@ -33,11 +33,54 @@ from gym import spaces
 from gym.utils import seeding
 from sklearn.preprocessing import scale
 import talib
+import requests
+from pandas import DataFrame
 
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
 log.info('%s logger started.', __name__)
+
+class Tiingo:
+    _BASEURL = "https://api.tiingo.com/tiingo/fx/"
+
+    def __init__(self):
+        self._apykey = "78e5c8035fba0e55ee50d130ec6ea476ecb5f734"
+
+    def _send_request(self, suffix: str):
+        try:
+            headers = {
+                'Content-Type': 'application/json'
+            }
+            request_response = requests.get(
+                f"{self._BASEURL}{suffix}&token={self._apykey}&format=json",
+                headers=headers)
+            return request_response.json()
+        except Exception as e:
+            self._tracer.error(f"Exception during _send_request {e}")
+            return ""
+
+    def _send_history_request(self, ticker: str, start: str, end: str, resolution: str) -> DataFrame:
+        end_date_string = ""
+        if end != None:
+            end_date_string = f"&endDate={end}"
+
+        res = self._send_request(f"{ticker}/prices?resampleFreq={resolution}&startDate={start}{end_date_string}")
+        if len(res) == 0:
+            self._tracer.error("Could not load history")
+            return DataFrame()
+        df = DataFrame(res)
+        df.drop(columns=["ticker"], inplace=True)
+        return df
+
+    def load_data_by_date(self, ticker: str, start: str, end: str,
+                          resolution: str = "1hour") -> DataFrame:
+        res = self._send_history_request(ticker, start, end, resolution)
+        if len(res) == 0:
+            return res
+
+        return res
+
 
 
 class DataSource:
@@ -71,13 +114,7 @@ class DataSource:
     def load_data(self):
         log.info('loading data for {}...'.format(self.ticker))
         idx = pd.IndexSlice
-        with pd.HDFStore('../data/assets.h5') as store:
-            df = (store['quandl/wiki/prices']
-                  .loc[idx[:, self.ticker],
-                       ['adj_close', 'adj_volume', 'adj_low', 'adj_high']]
-                  .dropna()
-                  .sort_index())
-        df.columns = ['close', 'volume', 'low', 'high']
+        df = Tiingo().load_data_by_date("GBPUSD","2022-10-01","2023-02-28")
         log.info('got data for {}...'.format(self.ticker))
         return df
 
@@ -98,7 +135,7 @@ class DataSource:
         self.data['atr'] = talib.ATR(self.data.high, self.data.low, self.data.close)
         self.data['ultosc'] = talib.ULTOSC(self.data.high, self.data.low, self.data.close)
         self.data = (self.data.replace((np.inf, -np.inf), np.nan)
-                     .drop(['high', 'low', 'close', 'volume'], axis=1)
+                     .drop(['high', 'low', 'close','date'], axis=1)
                      .dropna())
 
         r = self.data.returns.copy()
